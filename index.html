@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E5A4E">
+<title>Caja Rápida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#EEF1EF; --surface:#FFFFFF; --surface2:#F6F8F7; --ink:#15201D; --muted:#5E6B67;
+  --line:#D5DCD9; --accent:#0E5A4E; --accent-ink:#FFFFFF; --accent-soft:#DCEBE7;
+  --warn:#A8431C; --warn-soft:#F6E3DA; --paper:#FFFFFF; --paper-ink:#1A1A1A;
+  --r:12px; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#101614; --surface:#18201E; --surface2:#1E2826; --ink:#E6ECEA; --muted:#94A39E;
+  --line:#2C3835; --accent:#3FAE98; --accent-ink:#06120F; --accent-soft:#17302B;
+  --warn:#E07A52; --warn-soft:#3A2119; --paper:#F4F4F1; --paper-ink:#1A1A1A; color-scheme:dark; }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 Archivo,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+.mono,.price{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+.app{display:flex;flex-direction:column;height:100%;max-width:760px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 10px;background:var(--bg)}
+header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.01em}
+.printer-pill{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.printer-pill.on .dot{background:#2DB36F}
+main{flex:1;overflow-y:auto;padding:0 16px 16px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{border:0;background:none;padding:10px 4px 12px;font-size:12.5px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+nav button svg{width:22px;height:22px}
+nav button.active{color:var(--accent)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13.5px;cursor:pointer}
+.chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.prod{position:relative;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 10px;min-height:84px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:8px;cursor:pointer;transition:transform .08s}
+.prod:active{transform:scale(.97)}
+.prod .n{font-weight:600;line-height:1.2;word-break:break-word}
+.prod .price{font-size:14px;color:var(--accent);font-weight:600}
+.prod .q{position:absolute;top:-7px;right:-7px;min-width:24px;height:24px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.notice{background:var(--warn-soft);color:var(--ink);border-radius:var(--r);padding:10px 12px;font-size:13.5px;margin-bottom:12px}
+.notice b{color:var(--warn)}
+.cartbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--surface);border-top:1px solid var(--line)}
+.cartbar .info{flex:1;min-width:0}
+.cartbar .count{font-size:12.5px;color:var(--muted)}
+.cartbar .total{font-size:22px;font-weight:600}
+.btn{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:var(--surface2);border:1px solid var(--line)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--warn)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.wide{width:100%}
+.btn:focus-visible,.chip:focus-visible,.prod:focus-visible,nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h2{font-size:15px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:12px}
+label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:11px 12px;font-size:16px;color:var(--ink);font-weight:500;width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.list{display:flex;flex-direction:column}
+.item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .grow{flex:1;min-width:0}
+.item .sub{font-size:12.5px;color:var(--muted)}
+.iconbtn{border:1px solid var(--line);background:var(--surface2);border-radius:9px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:700;flex:none}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{background:var(--surface);width:100%;max-width:760px;max-height:92%;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;flex-direction:column;gap:14px}
+.sheet h3{margin:0;font-size:18px}
+.bigtotal{font-size:40px;font-weight:600;text-align:center;padding:6px 0}
+.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.quick button{padding:11px 0;font-size:14px}
+.change{display:flex;justify-content:space-between;align-items:baseline;background:var(--accent-soft);border-radius:10px;padding:12px 14px;font-weight:600}
+.change .price{font-size:24px}
+.ticket{background:var(--paper);color:var(--paper-ink);font:12.5px/1.35 "IBM Plex Mono",ui-monospace,Menlo,monospace;padding:16px 14px;white-space:pre;overflow-x:auto;border-radius:4px;box-shadow:0 1px 0 rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.12);margin:0 auto;max-width:100%}
+.stat{display:flex;gap:10px}
+.stat>div{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.stat .k{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.stat .v{font-size:22px;font-weight:600;margin-top:4px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 150px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:20;max-width:90%;text-align:center}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+@media (prefers-reduced-motion: reduce){.prod{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 id="shopTitle">Caja Rápida</h1>
+    <button class="printer-pill" id="printerPill" type="button"><span class="dot"></span><span id="printerLabel">Sin impresora</span></button>
+  </header>
+
+  <main id="main">
+    <!-- VENDER -->
+    <section id="v-vender">
+      <div class="notice" id="exampleNotice" hidden><b>Productos de ejemplo.</b> Cámbialos o bórralos en la pestaña Productos.</div>
+      <div class="chips" id="chips"></div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- PRODUCTOS -->
+    <section id="v-productos" hidden>
+      <h2>Añadir producto</h2>
+      <form class="card" id="prodForm">
+        <input type="hidden" id="pId">
+        <label>Nombre<input id="pName" required maxlength="40" placeholder="Ej. Café con leche"></label>
+        <div class="row">
+          <label>Precio (€)<input id="pPrice" required inputmode="decimal" placeholder="1,80"></label>
+          <label>Categoría<input id="pCat" list="catList" maxlength="20" placeholder="Bebidas"></label>
+        </div>
+        <datalist id="catList"></datalist>
+        <div class="row">
+          <button class="btn" type="button" id="pCancel" hidden>Cancelar</button>
+          <button class="btn primary" type="submit" id="pSave">Guardar producto</button>
+        </div>
+      </form>
+      <h2>Tus productos</h2>
+      <div class="card"><div class="list" id="prodList"></div></div>
+    </section>
+
+    <!-- VENTAS -->
+    <section id="v-ventas" hidden>
+      <h2>Hoy</h2>
+      <div class="stat">
+        <div><div class="k">Tickets</div><div class="v mono" id="sCount">0</div></div>
+        <div><div class="k">Total</div><div class="v price" id="sTotal">0,00 €</div></div>
+      </div>
+      <h2>Tickets de hoy</h2>
+      <div class="card"><div class="list" id="salesList"></div></div>
+    </section>
+
+    <!-- AJUSTES -->
+    <section id="v-ajustes" hidden>
+      <h2>Impresora</h2>
+      <div class="card">
+        <label>Ancho del papel
+          <select id="sWidth"><option value="58">58 mm</option><option value="80">80 mm</option></select>
+        </label>
+        <button class="btn primary wide" type="button" id="btnConnect">Conectar impresora Bluetooth</button>
+        <button class="btn wide" type="button" id="btnTest">Imprimir ticket de prueba</button>
+        <p class="hint">Enciende la impresora y el Bluetooth del móvil. Usa Chrome en Android.</p>
+      </div>
+      <h2>Datos del ticket</h2>
+      <div class="card">
+        <label>Nombre del negocio<input id="sName" maxlength="40"></label>
+        <label>Línea 2 (dirección)<input id="sLine2" maxlength="48"></label>
+        <label>Línea 3 (NIF / teléfono)<input id="sLine3" maxlength="48"></label>
+        <label>Mensaje al pie<input id="sFooter" maxlength="48"></label>
+        <div class="row">
+          <label>Impuesto<input id="sTaxName" maxlength="8" placeholder="IGIC"></label>
+          <label>% incluido (0 = no mostrar)<input id="sTaxPct" inputmode="decimal"></label>
+        </div>
+      </div>
+      <h2>Copia de seguridad</h2>
+      <div class="card">
+        <button class="btn wide" type="button" id="btnExport">Descargar copia (productos, ventas y ajustes)</button>
+        <label>Restaurar desde una copia<input type="file" id="fileImport" accept="application/json,.json"></label>
+      </div>
+    </section>
+  </main>
+
+  <div class="cartbar" id="cartbar">
+    <div class="info"><div class="count" id="cCount">Sin artículos</div><div class="total price" id="cTotal">0,00 €</div></div>
+    <button class="btn" type="button" id="btnCart">Ver</button>
+    <button class="btn primary" type="button" id="btnPay">Cobrar</button>
+  </div>
+
+  <nav id="nav">
+    <button type="button" data-v="vender" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Vender</button>
+    <button type="button" data-v="productos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Productos</button>
+    <button type="button" data-v="ventas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>Ventas</button>
+    <button type="button" data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
+  </nav>
+</div>
+
+<div class="sheet-bg" id="sheetBg" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- almacenamiento ---------- */
+const KEY="cajarapida_v1";
+const defaults={
+  products:[
+    {id:"e1",name:"Café solo",price:150,cat:"Bebidas"},
+    {id:"e2",name:"Café con leche",price:180,cat:"Bebidas"},
+    {id:"e3",name:"Agua 50 cl",price:150,cat:"Bebidas"},
+    {id:"e4",name:"Refresco",price:250,cat:"Bebidas"},
+    {id:"e5",name:"Cerveza",price:280,cat:"Bebidas"},
+    {id:"e6",name:"Bocadillo",price:450,cat:"Comida"},
+    {id:"e7",name:"Tostada",price:300,cat:"Comida"}
+  ],
+  examples:true,
+  sales:[], nextNum:1,
+  settings:{name:"Mi Negocio",line2:"",line3:"",footer:"¡Gracias por su visita!",taxName:"IGIC",taxPct:0,width:58}
+};
+let db;
+function load(){
+  try{ const raw=localStorage.getItem(KEY); db=raw?JSON.parse(raw):null; }catch(e){ db=null; }
+  if(!db){ db=JSON.parse(JSON.stringify(defaults)); }
+  db.settings=Object.assign({},defaults.settings,db.settings||{});
+}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(db)); }catch(e){ toast("No se pudo guardar en este móvil"); } }
+load();
+
+/* ---------- utilidades ---------- */
+const $=id=>document.getElementById(id);
+const eur=c=>(c/100).toFixed(2).replace(".",",")+" €";
+const num=c=>(c/100).toFixed(2).replace(".",",");
+function parseMoney(s){ s=String(s||"").trim().replace(/\s/g,"").replace(",","."); if(!/^\d+(\.\d{1,2})?$/.test(s)) return null; return Math.round(parseFloat(s)*100); }
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const todayKey=d=>{d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
+let toastT;
+function toast(m){ const t=$("toast"); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2600); }
+
+/* ---------- navegación ---------- */
+let view="vender";
+$("nav").addEventListener("click",e=>{ const b=e.target.closest("button[data-v]"); if(!b) return; show(b.dataset.v); });
+function show(v){
+  view=v;
+  ["vender","productos","ventas","ajustes"].forEach(x=>$("v-"+x).hidden=x!==v);
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
+  $("cartbar").hidden=v!=="vender";
+  $("main").scrollTop=0;
+  render();
+}
+
+/* ---------- carrito ---------- */
+let cart=[]; // {id,name,price,qty}
+let catFilter="Todos";
+function addToCart(p){ const l=cart.find(x=>x.id===p.id); if(l) l.qty++; else cart.push({id:p.id,name:p.name,price:p.price,qty:1}); renderSell(); renderCartbar(); if(navigator.vibrate) try{navigator.vibrate(12);}catch(e){} }
+const cartTotal=()=>cart.reduce((s,l)=>s+l.price*l.qty,0);
+const cartCount=()=>cart.reduce((s,l)=>s+l.qty,0);
+
+/* ---------- render ---------- */
+function render(){ $("shopTitle").textContent=db.settings.name||"Caja Rápida"; if(view==="vender"){renderSell();renderCartbar();} if(view==="productos") renderProducts(); if(view==="ventas") renderSales(); if(view==="ajustes") renderSettings(); }
+function cats(){ return [...new Set(db.products.map(p=>p.cat||"Otros"))]; }
+function renderSell(){
+  $("exampleNotice").hidden=!db.examples;
+  const cs=["Todos",...cats()]; if(!cs.includes(catFilter)) catFilter="Todos";
+  $("chips").innerHTML=cs.length>2?cs.map(c=>`<button type="button" class="chip${c===catFilter?" active":""}" data-c="${esc(c)}">${esc(c)}</button>`).join(""):"";
+  const list=db.products.filter(p=>catFilter==="Todos"||(p.cat||"Otros")===catFilter);
+  if(!list.length){ $("grid").innerHTML=`<div class="empty" style="grid-column:1/-1">Aún no hay productos. Añádelos en la pestaña Productos.</div>`; return; }
+  $("grid").innerHTML=list.map(p=>{ const l=cart.find(x=>x.id===p.id); return `<button type="button" class="prod" data-id="${p.id}">${l?`<span class="q">${l.qty}</span>`:""}<span class="n">${esc(p.name)}</span><span class="price">${eur(p.price)}</span></button>`; }).join("");
+}
+$("chips").addEventListener("click",e=>{ const b=e.target.closest(".chip"); if(!b) return; catFilter=b.dataset.c; renderSell(); });
+$("grid").addEventListener("click",e=>{ const b=e.target.closest(".prod"); if(!b) return; const p=db.products.find(x=>x.id===b.dataset.id); if(p) addToCart(p); });
+function renderCartbar(){ const n=cartCount(); $("cCount").textContent=n?n+(n===1?" artículo":" artículos"):"Sin artículos"; $("cTotal").textContent=eur(cartTotal()); $("btnPay").disabled=!n; $("btnCart").disabled=!n; }
+
+function renderProducts(){
+  $("catList").innerHTML=cats().map(c=>`<option value="${esc(c)}">`).join("");
+  if(!db.products.length){ $("prodList").innerHTML=`<div class="empty">Sin productos todavía.</div>`; return; }
+  const sorted=[...db.products].sort((a,b)=>(a.cat||"").localeCompare(b.cat||"")||a.name.localeCompare(b.name));
+  $("prodList").innerHTML=sorted.map(p=>`<div class="item"><div class="grow"><div>${esc(p.name)}</div><div class="sub">${esc(p.cat||"Otros")}</div></div><span class="price">${eur(p.price)}</span><button type="button" class="iconbtn" data-edit="${p.id}" aria-label="Editar">✎</button><button type="button" class="iconbtn" data-del="${p.id}" aria-label="Borrar" style="color:var(--warn)">×</button></div>`).join("");
+}
+function resetForm(){ $("pId").value=""; $("pName").value=""; $("pPrice").value=""; $("pCancel").hidden=true; $("pSave").textContent="Guardar producto"; }
+$("prodForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const name=$("pName").value.trim(), price=parseMoney($("pPrice").value), cat=$("pCat").value.trim()||"Otros";
+  if(!name){ toast("Escribe el nombre"); return; }
+  if(price===null){ toast("Precio no válido. Ejemplo: 2,50"); return; }
+  if(db.examples){ db.products=db.products.filter(p=>!/^e\d$/.test(p.id)); db.examples=false; }
+  const id=$("pId").value;
+  if(id){ const p=db.products.find(x=>x.id===id); if(p){p.name=name;p.price=price;p.cat=cat;} toast("Producto actualizado"); }
+  else { db.products.push({id:uid(),name,price,cat}); toast("Producto añadido"); }
+  save(); resetForm(); $("pCat").value=cat; renderProducts();
+});
+$("pCancel").addEventListener("click",()=>{ resetForm(); $("pCat").value=""; });
+$("prodList").addEventListener("click",e=>{
+  const ed=e.target.closest("[data-edit]"), del=e.target.closest("[data-del]");
+  if(ed){ const p=db.products.find(x=>x.id===ed.dataset.edit); if(!p) return; $("pId").value=p.id; $("pName").value=p.name; $("pPrice").value=num(p.price); $("pCat").value=p.cat||""; $("pCancel").hidden=false; $("pSave").textContent="Guardar cambios"; $("main").scrollTop=0; $("pName").focus(); }
+  if(del){ const p=db.products.find(x=>x.id===del.dataset.del); if(!p) return; confirmSheet(`¿Borrar «${p.name}»?`,"Borrar",()=>{ db.products=db.products.filter(x=>x.id!==p.id); cart=cart.filter(x=>x.id!==p.id); save(); renderProducts(); toast("Producto borrado"); }); }
+});
+
+function todaysSales(){ const k=todayKey(); return db.sales.filter(s=>todayKey(new Date(s.date))===k); }
+function renderSales(){
+  const t=todaysSales();
+  $("sCount").textContent=t.length; $("sTotal").textContent=eur(t.reduce((s,x)=>s+x.total,0));
+  if(!t.length){ $("salesList").innerHTML=`<div class="empty">Todavía no hay ventas hoy.</div>`; return; }
+  $("salesList").innerHTML=[...t].reverse().map(s=>{ const d=new Date(s.date); const hh=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); const n=s.items.reduce((a,l)=>a+l.qty,0); return `<div class="item"><div class="grow"><div class="mono">Nº ${s.num} · ${hh}</div><div class="sub">${n} ${n===1?"artículo":"artículos"}</div></div><span class="price">${eur(s.total)}</span><button type="button" class="iconbtn" data-view="${s.num}" aria-label="Ver ticket">⎙</button></div>`; }).join("");
+}
+$("salesList").addEventListener("click",e=>{ const b=e.target.closest("[data-view]"); if(!b) return; const s=db.sales.find(x=>x.num==b.dataset.view); if(s) ticketSheet(s,"Ticket Nº "+s.num); });
+
+function renderSettings(){
+  const s=db.settings; $("sWidth").value=String(s.width); $("sName").value=s.name; $("sLine2").value=s.line2; $("sLine3").value=s.line3; $("sFooter").value=s.footer; $("sTaxName").value=s.taxName; $("sTaxPct").value=s.taxPct?String(s.taxPct).replace(".",","):"0";
+}
+[["sName","name"],["sLine2","line2"],["sLine3","line3"],["sFooter","footer"],["sTaxName","taxName"]].forEach(([id,k])=>$(id).addEventListener("input",e=>{ db.settings[k]=e.target.value; save(); if(k==="name") $("shopTitle").textContent=e.target.value||"Caja Rápida"; }));
+$("sTaxPct").addEventListener("input",e=>{ const v=parseFloat(String(e.target.value).replace(",",".")); db.settings.taxPct=isFinite(v)&&v>0&&v<100?v:0; save(); });
+$("sWidth").addEventListener("change",e=>{ db.settings.width=parseInt(e.target.value,10); save(); });
+
+/* ---------- hojas (ventanas) ---------- */
+function openSheet(html){ $("sheet").innerHTML=html; $("sheetBg").hidden=false; }
+function closeSheet(){ $("sheetBg").hidden=true; $("sheet").innerHTML=""; }
+$("sheetBg").addEventListener("click",e=>{ if(e.target===$("sheetBg")) closeSheet(); });
+function confirmSheet(msg,okText,onOk){
+  openSheet(`<h3>${esc(msg)}</h3><div class="row"><button class="btn" type="button" id="cNo">Cancelar</button><button class="btn primary" type="button" id="cYes" style="background:var(--warn);border-color:var(--warn)">${esc(okText)}</button></div>`);
+  $("cNo").onclick=closeSheet; $("cYes").onclick=()=>{ closeSheet(); onOk(); };
+}
+function cartSheet(){
+  if(!cart.length){ closeSheet(); renderSell(); renderCartbar(); return; }
+  openSheet(`<h3>Pedido actual</h3><div class="list">${cart.map((l,i)=>`<div class="item"><div class="grow"><div>${esc(l.name)}</div><div class="sub price">${eur(l.price)} / ud.</div></div><button type="button" class="iconbtn" data-m="${i}">−</button><span class="mono" style="min-width:24px;text-align:center">${l.qty}</span><button type="button" class="iconbtn" data-p="${i}">+</button><span class="price" style="min-width:74px;text-align:right">${eur(l.price*l.qty)}</span></div>`).join("")}</div>
+  <div class="change"><span>Total</span><span class="price">${eur(cartTotal())}</span></div>
+  <div class="row"><button class="btn danger" type="button" id="kClear">Vaciar</button><button class="btn primary" type="button" id="kPay">Cobrar</button></div>`);
+  $("sheet").onclick=e=>{ const m=e.target.closest("[data-m]"), p=e.target.closest("[data-p]"); if(m){ const l=cart[m.dataset.m]; l.qty--; if(l.qty<=0) cart.splice(m.dataset.m,1); cartSheet(); renderCartbar(); } if(p){ cart[p.dataset.p].qty++; cartSheet(); renderCartbar(); } };
+  $("kClear").onclick=()=>{ cart=[]; closeSheet(); renderSell(); renderCartbar(); };
+  $("kPay").onclick=paySheet;
+}
+function paySheet(){
+  const total=cartTotal(); if(!total) return;
+  $("sheet").onclick=null;
+  const q=[total,500,1000,2000,5000].filter((v,i,a)=>i===0||v>total);
+  openSheet(`<h3>Cobrar en efectivo</h3><div class="bigtotal price">${eur(total)}</div>
+  <label>Entregado por el cliente (€)<input id="given" inputmode="decimal" placeholder="${num(total)}"></label>
+  <div class="quick">${q.slice(0,5).map((v,i)=>`<button type="button" class="btn" data-g="${v}">${i===0?"Justo":(v/100)+" €"}</button>`).join("")}</div>
+  <div class="change"><span>Cambio</span><span class="price" id="chg">0,00 €</span></div>
+  <button class="btn primary wide" type="button" id="payPrint">Cobrar e imprimir ticket</button>
+  <div class="row"><button class="btn" type="button" id="payBack">Volver</button><button class="btn" type="button" id="payNo">Cobrar sin ticket</button></div>`);
+  const upd=()=>{ const g=parseMoney($("given").value); const c=g===null?0:g-total; $("chg").textContent=c<0?"Falta "+eur(-c):eur(c); $("chg").style.color=c<0?"var(--warn)":""; };
+  $("given").addEventListener("input",upd);
+  $("sheet").querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{ $("given").value=num(+b.dataset.g); upd(); });
+  $("payBack").onclick=cartSheet;
+  const finish=async doPrint=>{
+    const g=parseMoney($("given").value); const given=g===null?total:g;
+    if(given<total){ toast("Lo entregado no llega al total"); return; }
+    const sale={num:db.nextNum++,date:new Date().toISOString(),items:cart.map(l=>({name:l.name,price:l.price,qty:l.qty})),total,given,change:given-total};
+    db.sales.push(sale); pruneSales(); save(); cart=[]; renderSell(); renderCartbar();
+    ticketSheet(sale,"Venta guardada");
+    if(doPrint) await printSale(sale);
+  };
+  $("payPrint").onclick=()=>finish(true);
+  $("payNo").onclick=()=>finish(false);
+}
+function pruneSales(){ const lim=Date.now()-1000*60*60*24*120; db.sales=db.sales.filter(s=>new Date(s.date).getTime()>lim); }
+function ticketSheet(sale,title){
+  $("sheet").onclick=null;
+  openSheet(`<h3>${esc(title)}</h3><pre class="ticket">${esc(ticketLines(sale).map(l=>l.t).join("\n"))}</pre>
+  <div class="row"><button class="btn" type="button" id="tClose">Cerrar</button><button class="btn primary" type="button" id="tPrint">Imprimir</button></div>`);
+  $("tClose").onclick=closeSheet; $("tPrint").onclick=()=>printSale(sale);
+}
+$("btnCart").onclick=cartSheet;
+$("btnPay").onclick=paySheet;
+
+/* ---------- formato del ticket ---------- */
+function cols(){ return db.settings.width===80?48:32; }
+function pad2(l,r,w){ l=String(l); r=String(r); const sp=w-l.length-r.length; if(sp>=1) return l+" ".repeat(sp)+r; return l.slice(0,Math.max(0,w-r.length-1))+" "+r; }
+function center(s,w){ s=String(s).slice(0,w); const p=Math.floor((w-s.length)/2); return " ".repeat(p)+s; }
+function wrap(s,w){ const out=[]; let line=""; String(s).split(/\s+/).forEach(word=>{ while(word.length>w){ if(line){out.push(line);line="";} out.push(word.slice(0,w)); word=word.slice(w); } if(!line) line=word; else if((line+" "+word).length<=w) line+=" "+word; else { out.push(line); line=word; } }); if(line) out.push(line); return out.length?out:[""]; }
+// Cada línea: {t: texto, a: 'c'|'l', b: negrita, big: doble tamaño}
+function ticketLines(sale){
+  const s=db.settings, W=cols(), L=[]; const d=new Date(sale.date);
+  const fecha=String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  const bigW=Math.floor(W/2);
+  if(s.name) wrap(s.name,bigW).forEach(x=>L.push({t:center(x,W),raw:x,a:"c",b:true,big:true}));
+  [s.line2,s.line3].forEach(x=>{ if(x) wrap(x,W).forEach(y=>L.push({t:center(y,W),raw:y,a:"c"})); });
+  L.push({t:""});
+  L.push({t:pad2("Ticket Nº "+sale.num,fecha,W)});
+  L.push({t:"-".repeat(W)});
+  sale.items.forEach(it=>{
+    const right=num(it.price*it.qty); const left=it.qty+" x "+it.name;
+    if(left.length+right.length+1<=W) L.push({t:pad2(left,right,W)});
+    else { const lines=wrap(left,W-right.length-1); lines.forEach((x,i)=>L.push({t:i===lines.length-1?pad2(x,right,W):x})); }
+    if(it.qty>1) L.push({t:"   ("+num(it.price)+" / ud.)"});
+  });
+  L.push({t:"-".repeat(W)});
+  const tot="TOTAL "+num(sale.total)+" EUR";
+  L.push({t:" ".repeat(Math.max(0,W-tot.length*2))+tot,raw:tot,a:"r",b:true,big:true});
+  if(s.taxPct>0){ const base=Math.round(sale.total/(1+s.taxPct/100)); const cuota=sale.total-base; const tn=(s.taxName||"Impuesto").trim(); L.push({t:pad2("Base imponible",num(base),W)}); L.push({t:pad2(tn+" "+String(s.taxPct).replace(".",",")+"% incluido",num(cuota),W)}); }
+  if(sale.given!=null){ L.push({t:pad2("Entregado",num(sale.given),W)}); L.push({t:pad2("Cambio",num(sale.change),W)}); }
+  L.push({t:""});
+  if(s.footer) wrap(s.footer,W).forEach(x=>L.push({t:center(x,W),raw:x,a:"c"}));
+  return L;
+}
+
+/* ---------- ESC/POS ---------- */
+const CP850={"Ç":0x80,"ü":0x81,"é":0x82,"â":0x83,"ä":0x84,"à":0x85,"ç":0x87,"ê":0x88,"ë":0x89,"è":0x8A,"ï":0x8B,"î":0x8C,"Ä":0x8E,"É":0x90,"ô":0x93,"ö":0x94,"û":0x96,"ù":0x97,"Ö":0x99,"Ü":0x9A,"á":0xA0,"í":0xA1,"ó":0xA2,"ú":0xA3,"ñ":0xA4,"Ñ":0xA5,"ª":0xA6,"º":0xA7,"¿":0xA8,"¡":0xAD,"Á":0xB5,"Â":0xB6,"À":0xB7,"Í":0xD6,"Ó":0xE0,"Ú":0xE9,"€":null};
+function encode(str){ const out=[]; for(const ch of String(str)){ const c=ch.charCodeAt(0); if(c<128) out.push(c); else if(ch==="€"){ out.push(69,85,82); } else if(CP850[ch]!=null) out.push(CP850[ch]); else out.push(63); } return out; }
+function escpos(lines){
+  const b=[0x1B,0x40, 0x1B,0x74,0x02];
+  lines.forEach(l=>{
+    b.push(0x1B,0x61, l.a==="c"?1:l.a==="r"?2:0);
+    if(l.b) b.push(0x1B,0x45,1);
+    if(l.big) b.push(0x1D,0x21,0x11);
+    b.push(...encode((l.a==="c"||l.a==="r")&&l.raw!=null?l.raw:l.t),0x0A);
+    if(l.big) b.push(0x1D,0x21,0x00);
+    if(l.b) b.push(0x1B,0x45,0);
+  });
+  b.push(0x1B,0x61,0, 0x1B,0x64,4, 0x1D,0x56,0x42,0x00);
+  return new Uint8Array(b);
+}
+
+/* ---------- Bluetooth ---------- */
+const SERVICES=["000018f0-0000-1000-8000-00805f9b34fb","0000ff00-0000-1000-8000-00805f9b34fb","0000ffe0-0000-1000-8000-00805f9b34fb","0000fee7-0000-1000-8000-00805f9b34fb","0000ae30-0000-1000-8000-00805f9b34fb","e7810a71-73ae-499d-8c15-faa9aef0c3f2","49535343-fe7d-4ae5-8fa9-9fafd205e455"];
+let device=null, charac=null;
+function setPill(){ const on=!!(device&&device.gatt&&device.gatt.connected&&charac); $("printerPill").classList.toggle("on",on); $("printerLabel").textContent=on?(device.name||"Impresora"):(device?"Reconectar":"Sin impresora"); }
+async function findChar(server){
+  const svcs=await server.getPrimaryServices();
+  for(const s of svcs){ try{ const cs=await s.getCharacteristics(); for(const c of cs){ if(c.properties.writeWithoutResponse||c.properties.write) return c; } }catch(e){} }
+  return null;
+}
+async function connect(){
+  if(!("bluetooth" in navigator)){ toast("Este navegador no permite Bluetooth. Abre la página en Chrome en Android."); return false; }
+  try{
+    if(!device){ device=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:SERVICES}); device.addEventListener("gattserverdisconnected",()=>{charac=null;setPill();}); }
+    $("printerLabel").textContent="Conectando…";
+    const server=await device.gatt.connect();
+    charac=await findChar(server);
+    if(!charac){ toast("La impresora no acepta datos por Bluetooth BLE"); device.gatt.disconnect(); device=null; setPill(); return false; }
+    setPill(); toast("Impresora conectada"); return true;
+  }catch(e){
+    if(e&&e.name==="NotFoundError"){ setPill(); return false; }
+    device=null; charac=null; setPill(); toast("No se pudo conectar. Enciéndela y vuelve a probar."); return false;
+  }
+}
+async function send(bytes){
+  const chunk=100;
+  for(let i=0;i<bytes.length;i+=chunk){
+    const part=bytes.slice(i,i+chunk);
+    if(charac.properties.writeWithoutResponse&&charac.writeValueWithoutResponse) await charac.writeValueWithoutResponse(part);
+    else await charac.writeValue(part);
+    await new Promise(r=>setTimeout(r,25));
+  }
+}
+async function printLines(lines){
+  if(!(device&&device.gatt.connected&&charac)){ const ok=await connect(); if(!ok) return false; }
+  try{ await send(escpos(lines)); toast("Ticket impreso"); return true; }
+  catch(e){ charac=null; setPill(); toast("Fallo al imprimir. Pulsa Imprimir otra vez."); return false; }
+}
+function printSale(sale){ return printLines(ticketLines(sale)); }
+$("printerPill").onclick=()=>connect();
+$("btnConnect").onclick=()=>{ if(device&&!(device.gatt&&device.gatt.connected)) connect(); else { device=null; charac=null; connect(); } };
+$("btnTest").onclick=()=>printLines(ticketLines({num:0,date:new Date().toISOString(),items:[{name:"Prueba de impresión",price:100,qty:2},{name:"Añejo, ñandú, ¿ok?",price:250,qty:1}],total:450,given:500,change:50}));
+
+/* ---------- copia de seguridad ---------- */
+$("btnExport").onclick=()=>{
+  const blob=new Blob([JSON.stringify(db,null,1)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="caja-copia-"+todayKey()+".json"; document.body.appendChild(a); a.click(); a.remove();
+  toast("Copia descargada");
+};
+$("fileImport").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return; const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!Array.isArray(d.products)) throw 0; confirmSheet("¿Sustituir todo por esta copia?","Restaurar",()=>{ db=d; db.settings=Object.assign({},defaults.settings,d.settings||{}); save(); cart=[]; render(); toast("Copia restaurada"); }); }catch(err){ toast("Ese archivo no es una copia válida"); } e.target.value=""; };
+  r.readAsText(f);
+});
+
+render(); setPill();
+})();
+</script>
+</body>
+</html>
